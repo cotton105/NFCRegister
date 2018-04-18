@@ -3,17 +3,13 @@ from tkinter import *
 from tkinter.font import Font
 import time
 class User:
-	UserID = ''
-	FirstName = ''
-	Authorisation = ''
-	Status = ''
-
 	def __init__(self, UserID, db):
 		self.db = db
 		self.UserID = UserID
 		self.FirstName = self.db.GetFirstName(self.UserID)
 		self.Authorisation = self.db.GetAuthorisation(self.UserID)
 		self.Status = self.db.GetStatus(self.UserID)
+		self.normalWindowX = 500
 
 	def Register(self):
 		db = self.db
@@ -25,7 +21,7 @@ class User:
 				if self.__signInOption == 'SIGNIN':
 					db.AddLog(self.UserID, 'SIGNIN', False)
 					db.UpdateStatus(self.UserID, 'PRESENT')
-					self.__RegisteredScreen()
+					#self.__RegisteredScreen()
 					actionPerformed = True
 				elif self.__signInOption == 'CANCEL':
 					print('Action cancelled.')
@@ -35,7 +31,7 @@ class User:
 				if self.__signOutOption == 'SIGNOUT':
 					db.AddLog(self.UserID, 'SIGNOUT', False)
 					db.UpdateStatus(self.UserID, 'ABSENT')
-					self.__RegisteredScreen()
+					#self.__RegisteredScreen()
 					actionPerformed = True
 				elif self.__signOutOption == 'LUNCHBREAK':
 					db.AddLog(self.UserID, 'LUNCHBREAK', False)
@@ -58,7 +54,7 @@ class User:
 
 	def __GetSignInOption(self):
 		self.signInOption = ''
-		self._InitNewScreen('Register')
+		self._InitNewScreen('Register', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -89,7 +85,7 @@ class User:
 
 	def __GetSignOutOption(self):
 		self.signOutOption = ''
-		self._InitNewScreen('Register')
+		self._InitNewScreen('Register', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -127,7 +123,7 @@ class User:
 
 	def __RegisteredScreen(self):
 		self.Status = self.db.GetStatus(self.UserID)
-		self._InitNewScreen('Registered')
+		self._InitNewScreen('Registered', self.normalWindowX)
 
 		self.dateLabel = Label(self.mainWindow, text=time.strftime('%-d %b %Y'), font=self.datetimeDisplayFont)
 		self.dateLabel.place(anchor='nw')
@@ -154,9 +150,14 @@ class User:
 		self.mainWindow.after(3000, self.mainWindow.destroy)
 		self.mainWindow.mainloop()
 
-	def _InitNewScreen(self, title):
+	def _InitNewScreen(self, title, windowX):
 		self.mainWindow = Tk()
-		self.mainWindow.geometry('500x500')
+		windowY = 500
+		#screenX = self.mainWindow.winfo_screenwidth()
+		#screenY = self.mainWindow.winfo_screenheight()
+		#x = (screenX/2) - (windowX/2)
+		#y = (screenY/2) - (windowY/2)
+		self.mainWindow.geometry('{0}x{1}+{2}+{3}'.format(windowX, windowY, 200, 200))
 		self.mainWindow.title(title)
 		self.mainWindow.resizable(width=False, height=False)
 

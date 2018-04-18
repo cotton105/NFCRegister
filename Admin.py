@@ -17,6 +17,8 @@ class Admin(User): #Inherits the User class
 					self.__ChangeAuthorisation(self.TargetUserID)
 				elif self.__adminAction == 'CHANGESTATUS':
 					self.__ChangeStatus(self.TargetUserID)
+			elif self.__adminAction == 'SEARCHUSER':
+				self.__EnterUserName()
 			elif self.__adminAction == 'VIEWLOGS':
 				self.__ViewLogs(db.GetLogs())
 			elif self.__adminAction == 'VIEWUSERS':
@@ -28,7 +30,7 @@ class Admin(User): #Inherits the User class
 				self.__actionPerformed = True
 
 	def __GetAdminAction(self): #Display the screen which allows the user to select an admin option
-		self._InitNewScreen('Admin tools')
+		self._InitNewScreen('Admin tools', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -65,7 +67,7 @@ class Admin(User): #Inherits the User class
 	def __GetTargetUserID(self): #Retrieve the UserID of the user to modify from the admin
 		self.__validUserID = False
 		while not self.__validUserID:
-			self._InitNewScreen('Get UserID')
+			self._InitNewScreen('Get UserID', self.normalWindowX)
 
 			self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 			self.welcomeFrame.place(relx=.5, rely=.25, anchor='n')
@@ -97,7 +99,7 @@ class Admin(User): #Inherits the User class
 		elif self.__ValidUserID(UserID):
 			if str(UserID) == str(self.UserID): #Prevent the user modifying themself: this can cause issues if they try to change their own status to 'ABSENT'
 				self.mainWindow.destroy()
-				self._InitNewScreen('Invalid UserID')
+				self._InitNewScreen('Invalid UserID', self.normalWindowX)
 
 				self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 				self.welcomeFrame.place(relx=.5, rely=.35, anchor='n')
@@ -116,7 +118,7 @@ class Admin(User): #Inherits the User class
 				self.__GetAttributeToChange()
 		else:
 			self.mainWindow.destroy()
-			self._InitNewScreen('Invalid UserID')
+			self._InitNewScreen('Invalid UserID', self.normalWindowX)
 
 			self.greetingFont = Font(family='Helvetica', size=18)
 			self.buttonFont = Font(family='Helvetica', size=14)
@@ -136,7 +138,7 @@ class Admin(User): #Inherits the User class
 			self.mainWindow.mainloop()
 
 	def __GetAttributeToChange(self): #Display the attributes that the admin can change
-		self._InitNewScreen('Get attribute to change')
+		self._InitNewScreen('Get attribute to change', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -167,7 +169,7 @@ class Admin(User): #Inherits the User class
 		self.mainWindow.mainloop()
 
 	def __ChangeFName(self, TargetUserID): #(Admin) Manually modify a user's Authorisation
-		self._InitNewScreen('Change first name')
+		self._InitNewScreen('Change first name', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -200,7 +202,7 @@ class Admin(User): #Inherits the User class
 		self.db.ManualChangeFName(TargetUserID, FName) #Make the changes to the database
 
 	def __ChangeSName(self, TargetUserID): #(Admin) Manually modify a user's Authorisation
-		self._InitNewScreen('Change surname')
+		self._InitNewScreen('Change surname', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -233,7 +235,7 @@ class Admin(User): #Inherits the User class
 		self.db.ManualChangeSName(TargetUserID, SName) #Make the changes to the database
 
 	def __ChangeAuthorisation(self, TargetUserID): #(Admin) Manually modify a user's Authorisation
-		self._InitNewScreen('Change authorisation')
+		self._InitNewScreen('Change authorisation', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -267,10 +269,13 @@ class Admin(User): #Inherits the User class
 	def __SetNewAuth(self, TargetUserID):
 		Auth = self.newAuth.get()
 		self.mainWindow.destroy()
-		self.db.ManualChangeAuth(TargetUserID, Auth) #Make the changes to the database
+		if Auth != 'STUDENT' and Auth !='TEACHER' and Auth != 'ADMIN':
+			self.__NoOptionSelected()
+		else:
+			self.db.ManualChangeAuth(TargetUserID, Auth) #Make the changes to the database
 
 	def __ChangeStatus(self, TargetUserID): #Get the status to change to
-		self._InitNewScreen('Change status')
+		self._InitNewScreen('Change status', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
@@ -307,40 +312,41 @@ class Admin(User): #Inherits the User class
 	def __SetNewStatus(self, TargetUserID):
 		Status = self.newStatus.get()
 		self.mainWindow.destroy()
-		self.db.ManualChangeStatus(TargetUserID, Status) #Make the changes to the database
+		if Status != 'PRESENT' and Status != 'ABSENT' and Status != 'LUNCHBREAK':
+			self.__NoOptionSelected()
+		else:
+			self.db.ManualChangeStatus(TargetUserID, Status) #Make the changes to the database
 
-	def __ViewLogs(self, table):
-		self._InitNewScreen('View logs')
+	def __NoOptionSelected(self):
+		self._InitNewScreen('No option selected', self.normalWindowX)
 
-		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
-		self.welcomeFrame.pack(side=TOP)
+		self.welcomeFrame = Frame(self.mainWindow, height=100, width=self.normalWindowX)
+		self.welcomeFrame.place(relx=.5, rely=.35, anchor='n')
 
-		mainWindowFrame = Frame(self.mainWindow, height=450, width=484)
-		tableCanvas = Canvas(mainWindowFrame, height=450, width=484)
-		self.tableFrame = Frame(tableCanvas, height=450, width=484)
-		scrollbar = Scrollbar(tableCanvas, orient='vertical', command=tableCanvas.yview)
-		tableCanvas.config(yscrollcommand=scrollbar.set)
-
-		mainWindowFrame.pack(side=LEFT, fill='both', expand=True)
-		scrollbar.pack(side=RIGHT, fill='y', expand=False)
-		tableCanvas.pack(side=LEFT, fill='both', expand=True)
-		tableCanvas.create_window((0,0), window=self.tableFrame, anchor='nw')
-		self.tableFrame.bind('<Configure>', tableCanvas.configure(scrollregion=tableCanvas.bbox('all')))
-		self.tableFrame.pack(side=LEFT, fill='both', expand=True)
-
-		headers = ('LogID', 'UserID', 'Type', 'Forced', 'Date', 'Time')
-		self.__FillTable(table, headers)
-
-		cancelButton = Button(self.welcomeFrame, text='Return', font=self.buttonFont, bg='red', command=self.mainWindow.destroy)
-		cancelButton.place(relx=.85, rely=.5, anchor='n')
+		welcomeText = 'No option selected.'
+		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
+		welcomeLabel.place(relx=.5, rely=0, anchor='n')
 
 		self._DateAndTime()
+		self.mainWindow.after(3000, self.mainWindow.destroy)
 		self.mainWindow.mainloop()
 
-	def __ViewUsers(self, table):
-		self._InitNewScreen('View users')
+	def __EnterUserName(self):
+		self._InitNewScreen('Enter user name', self.normalWindowX)
 
-		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
+		self.welcomeFrame = Frame(self.mainWindow, height=100, width=self.normalWindowX)
+		self.welcomeFrame.place(relx=.5, rely=.1)
+
+		welcomeText = 'Enter a FirstName, Surname or both.'
+		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
+		welcomeLabel.place(relx=.5, rely=2, anchor='n')
+
+
+
+	def __ViewLogs(self, table):
+		self._InitNewScreen('View logs', self.normalWindowX)
+
+		self.welcomeFrame = Frame(self.mainWindow, height=100, width=self.normalWindowX)
 		self.welcomeFrame.pack(side=TOP)
 
 		mainTableFrame = Frame(self.mainWindow, height=400, width=484)
@@ -357,7 +363,37 @@ class Admin(User): #Inherits the User class
 
 		self.tableFrame.bind('<Configure>', self.__onFrameConfigure)
 
-		headers = ('UserID', 'FirstName', 'Surname', 'Authorisation', 'Status')
+		headers = ('LogID', 'UserID', 'Type', 'Forced', 'Date', 'Time')
+		self.__FillTable(table, headers)
+
+		cancelButton = Button(self.welcomeFrame, text='Return', font=self.buttonFont, bg='red', command=self.mainWindow.destroy)
+		cancelButton.place(relx=.85, rely=.5, anchor='n')
+
+		self._DateAndTime()
+		self.mainWindow.mainloop()
+
+	def __ViewUsers(self, table):
+		usersWindowWidth = 700
+		self._InitNewScreen('View users', usersWindowWidth)
+
+		self.welcomeFrame = Frame(self.mainWindow, height=100, width=usersWindowWidth)
+		self.welcomeFrame.pack(side=TOP)
+
+		mainTableFrame = Frame(self.mainWindow, height=400, width=484)
+		self.tableCanvas = Canvas(mainTableFrame)
+		self.tableFrame = Frame(self.tableCanvas)
+		self.tableScrollbar = Scrollbar(mainTableFrame, orient='vertical', command=self.tableCanvas.yview)
+		self.tableCanvas.config(yscrollcommand=self.tableScrollbar.set)
+
+		mainTableFrame.pack(side=LEFT, fill='both', expand=True)
+		self.tableFrame.pack(side=LEFT, fill='both', expand=True)
+		self.tableScrollbar.pack(side=RIGHT, fill='y', expand=False)
+		self.tableCanvas.pack(side=LEFT, fill='both', expand=True)
+		self.tableCanvas.create_window((0,0), window=self.tableFrame, anchor='nw')
+
+		self.tableFrame.bind('<Configure>', self.__onFrameConfigure)
+
+		headers = ('UserID', 'KeyID', 'FirstName', 'Surname', 'Authorisation', 'Status')
 		self.__FillTable(table, headers)
 
 		cancelButton = Button(self.welcomeFrame, text='Return', font=self.buttonFont, bg='red', command=self.mainWindow.destroy)
@@ -382,7 +418,7 @@ class Admin(User): #Inherits the User class
 				value.config(highlightthickness=1, highlightbackground='grey')
 
 	def __AddNewUser(self): #Enter the information for a new user to be added to the database
-		self._InitNewScreen('Add a new user')
+		self._InitNewScreen('Add a new user', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 		self.welcomeFrame.place(relx=.5, rely=.1, anchor='n')
@@ -440,7 +476,7 @@ class Admin(User): #Inherits the User class
 		if not validFName or not validAuth:
 			valid = False
 		if not valid:
-			self._InitNewScreen('Bad user credentials')
+			self._InitNewScreen('Bad user credentials', self.normalWindowX)
 
 			self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
 			self.welcomeFrame.place(relx=.5, rely=.35, anchor='n')

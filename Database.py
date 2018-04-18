@@ -14,6 +14,7 @@ class Database:
 		#Query to create UserDetails entity
 		createUserDetailsEntity = 'CREATE TABLE UserDetails(' \
 			+ 'UserID SMALLINT(5) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, ' \
+			+ 'KeyID CHAR(14) NOT NULL, ' \
 			+ 'FirstName VARCHAR(50) NOT NULL, ' \
 			+ 'Surname VARCHAR(50) DEFAULT NULL, ' \
 			+ 'Authorisation VARCHAR(7) NOT NULL , ' \
