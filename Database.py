@@ -13,29 +13,29 @@ class Database:
 	def AddToNewDatabase(self): #Procedure to create entities and add one user to the new database
 		#Query to create UserDetails entity
 		createUserDetailsEntity = 'CREATE TABLE UserDetails(' \
-			+ 'UserID SMALLINT(5) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, ' \
-			+ 'KeyID CHAR(14) NOT NULL, ' \
-			+ 'FirstName VARCHAR(50) NOT NULL, ' \
-			+ 'Surname VARCHAR(50) DEFAULT NULL, ' \
-			+ 'Authorisation VARCHAR(7) NOT NULL , ' \
-			+ 'Status VARCHAR(10) NOT NULL DEFAULT "ABSENT");'
+			'UserID SMALLINT(5) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, ' \
+			'KeyID CHAR(14) NOT NULL, ' \
+			'FirstName VARCHAR(50) NOT NULL, ' \
+			'Surname VARCHAR(50) DEFAULT NULL, ' \
+			'Authorisation VARCHAR(7) NOT NULL , ' \
+			'Status VARCHAR(10) NOT NULL DEFAULT "ABSENT");'
 		#Query to create Log entity
 		createLogEntity = 'CREATE TABLE Log(' \
-			+ 'LogID INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, ' \
-			+ 'UserID SMALLINT UNSIGNED NOT NULL, ' \
-			+ 'FOREIGN KEY UserID (UserID) REFERENCES UserDetails(UserID), ' \
-			+ 'Type VARCHAR(12) NOT NULL, ' \
-			+ 'Forced BOOLEAN NOT NULL);'
+			'LogID INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, ' \
+			'UserID SMALLINT UNSIGNED NOT NULL, ' \
+			'FOREIGN KEY UserID (UserID) REFERENCES UserDetails(UserID), ' \
+			'Type VARCHAR(12) NOT NULL, ' \
+			'Forced BOOLEAN NOT NULL);'
 		#Query to create entity which tracks time of logs
 		createEntryTimeEntity = 'CREATE TABLE EntryTime(' \
-			+ 'LogID INT UNSIGNED NOT NULL, ' \
-			+ 'FOREIGN KEY LogID (LogID) REFERENCES Log(LogID), ' \
-			+ 'Date DATE NOT NULL, ' \
-			+ 'Time TIME NOT NULL);'
+			'LogID INT UNSIGNED NOT NULL, ' \
+			'FOREIGN KEY LogID (LogID) REFERENCES Log(LogID), ' \
+			'Date DATE NOT NULL, ' \
+			'Time TIME NOT NULL);'
 		#Query to ensure at least one admin is registered, so that changes can be made
 		createAdmin = 'INSERT INTO UserDetails(' \
-			+ 'FirstName, Authorisation) ' \
-			+ 'VALUES("Admin", "ADMIN");'
+			'FirstName, Authorisation) ' \
+			'VALUES("Admin", "ADMIN");'
 		queries = (createUserDetailsEntity,
 				   createLogEntity,
 				   createEntryTimeEntity,
@@ -76,6 +76,13 @@ class Database:
 		print('Query: {0}'.format(query))
 		self.__cur.execute(query)
 		result = (self.__cur.fetchone())[0] #Get the value retrieved by the cusor execution, and convert from tuple to string
+		print(result)
+		return result
+
+	def __ReturnManySQL(self, query):
+		print('Query: {0}'.format(query))
+		self.__cur.execute(query)
+		result = self.__cur.fetchmany()
 		print(result)
 		return result
 
@@ -129,29 +136,24 @@ class Database:
 
 	def GetLogs(self): #(Admin) Display all the records in the Log entity
 		query = 'SELECT Log.LogID, Log.UserID, Log.Type, Log.Forced, EntryTime.Date, EntryTime.Time ' \
-				'FROM Log, EntryTime ' \
-				'WHERE Log.LogID = EntryTime.LogID ' \
-				'ORDER BY EntryTime.Date, EntryTime.Time ASC;'
+			'FROM Log, EntryTime ' \
+			'WHERE Log.LogID = EntryTime.LogID ' \
+			'ORDER BY EntryTime.Date, EntryTime.Time ASC;'
 		logTable = self.__ReturnAllSQL(query)
-		'''
-		print('+-------+--------+------------+--------+----------+--------+\n' \
-			  '| LogID | UserID |    Type    | Forced |   Date   |  Time  |\n' \
-			  '+-------+--------+------------+--------+----------+--------+')
-		for row in logTable:
-			print('|{0:<7}|{1:<8}|{2:<12}|{3:<8}|{4:<10}|{5:<8}|'.format(str(row[0]), str(row[1]), str(row[2]), str(row[3]), str(row[4]), str(row[5])))
-		print('+-------+--------+------------+--------+----------+--------+')
-		'''
 		return logTable
+
+	def SearchUsers(self, FName, SName):
+		if len(FName) > 0 and len(SName) > 0:
+			whereClause = 'FirstName = "{0}" AND Surname = "{1}"'.format(FName, SName)
+		elif len(FName) > 0 and len(SName) == 0:
+			whereClause = 'FirstName = "{0}"'.format(FName)
+		elif len(SName) > 0 and len(FName) == 0:
+			whereClause = 'Surname = "{0}"'.format(SName)
+		query = 'SELECT * FROM UserDetails WHERE {0};'.format(whereClause)
+		matchingUsers = self.__ReturnAllSQL(query)
+		return matchingUsers
 
 	def GetUsers(self):
 		query = 'SELECT * FROM UserDetails;'
 		userTable = self.__ReturnAllSQL(query)
-		'''
-		print('+--------+--------------------+--------------------+---------------+----------+\n' \
-			  '| UserID |     FirstName      |      Surname       | Authorisation |  Status  |\n' \
-			  '+--------+--------------------+--------------------+---------------+----------+')
-		for row in userTable:
-			print('|{0:<8}|{1:<20}|{2:<20}|{3:<15}|{4:<10}|'.format(str(row[0]), str(row[1]), str(row[2]), str(row[3]), str(row[4])))
-		print('+--------+--------------------+--------------------+---------------+----------+')
-		'''
 		return userTable

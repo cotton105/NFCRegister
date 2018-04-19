@@ -10,6 +10,7 @@ class User:
 		self.Authorisation = self.db.GetAuthorisation(self.UserID)
 		self.Status = self.db.GetStatus(self.UserID)
 		self.normalWindowX = 500
+		self.normalWelcomeFrameHeight = 100
 
 	def Register(self):
 		db = self.db
@@ -17,21 +18,23 @@ class User:
 		actionPerformed = False
 		while not actionPerformed:
 			if SignInOrOut == 'SIGNIN':
+				self.__signInOption = ''
 				self.__GetSignInOption()
 				if self.__signInOption == 'SIGNIN':
 					db.AddLog(self.UserID, 'SIGNIN', False)
 					db.UpdateStatus(self.UserID, 'PRESENT')
-					#self.__RegisteredScreen()
+					self.__RegisteredScreen()
 					actionPerformed = True
 				elif self.__signInOption == 'CANCEL':
 					print('Action cancelled.')
 					actionPerformed = True
 			elif SignInOrOut == 'SIGNOUT':
+				self.__signOutOption = ''
 				self.__GetSignOutOption()
 				if self.__signOutOption == 'SIGNOUT':
 					db.AddLog(self.UserID, 'SIGNOUT', False)
 					db.UpdateStatus(self.UserID, 'ABSENT')
-					#self.__RegisteredScreen()
+					self.__RegisteredScreen()
 					actionPerformed = True
 				elif self.__signOutOption == 'LUNCHBREAK':
 					db.AddLog(self.UserID, 'LUNCHBREAK', False)
@@ -56,14 +59,14 @@ class User:
 		self.signInOption = ''
 		self._InitNewScreen('Register', self.normalWindowX)
 
-		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
+		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
 
 		welcomeText = 'Welcome, {0}.'.format(self.FirstName)
 		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
 		welcomeLabel.place(relx=.5, rely=.1, anchor='n')
 
-		optionsFrame = Frame(self.mainWindow, height=100, width=500)
+		optionsFrame = Frame(self.mainWindow, height=100, width=self.normalWindowX)
 		optionsFrame.pack(side=LEFT)
 
 		signInButton = Button(optionsFrame, text='Sign in', font=self.buttonFont, bg='green', command=lambda: self.__SetSignInOption('SIGNIN'))
@@ -87,14 +90,14 @@ class User:
 		self.signOutOption = ''
 		self._InitNewScreen('Register', self.normalWindowX)
 
-		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
+		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
 
 		welcomeText = '{0}, select your reason for signing out.'.format(self.FirstName)
 		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
 		welcomeLabel.place(relx=.5, rely=.1, anchor='n')
 
-		optionsFrame = Frame(self.mainWindow, height=150, width=500)
+		optionsFrame = Frame(self.mainWindow, height=150, width=self.normalWindowX)
 		optionsFrame.place(relx=.5, rely=.33, anchor='n')
 
 		signOutButton = Button(optionsFrame, text='Sign out', font=self.buttonFont, bg='yellow', command=lambda: self.__SetSignOutOption('SIGNOUT'))
@@ -128,7 +131,7 @@ class User:
 		self.dateLabel = Label(self.mainWindow, text=time.strftime('%-d %b %Y'), font=self.datetimeDisplayFont)
 		self.dateLabel.place(anchor='nw')
 
-		self.welcomeFrame = Frame(self.mainWindow, height=100, width=500)
+		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.35, anchor='n')
 		if self.Status == 'PRESENT':
 			registerType = 'in'
@@ -160,6 +163,8 @@ class User:
 		self.mainWindow.geometry('{0}x{1}+{2}+{3}'.format(windowX, windowY, 200, 200))
 		self.mainWindow.title(title)
 		self.mainWindow.resizable(width=False, height=False)
+		#self.mainWindow.update_idletasks()
+		#self.mainWindow.overrideredirect(True) #Remove border around window which includes min, max and X buttons
 
 		self.greetingFont = Font(family='Helvetica', size=18)
 		self.buttonFont = Font(family='Helvetica', size=14)
