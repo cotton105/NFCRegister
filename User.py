@@ -6,29 +6,30 @@ class User:
 	def __init__(self, UserID, db):
 		self.db = db
 		self.UserID = UserID
-		self.FirstName = self.db.GetFirstName(self.UserID)
-		self.Authorisation = self.db.GetAuthorisation(self.UserID)
-		self.Status = self.db.GetStatus(self.UserID)
-		self.normalWindowX = 500
-		self.normalWelcomeFrameHeight = 100
+		self.FirstName = self.db.GetFirstName(self.UserID) #Attribute for user FirstName
+		self.Authorisation = self.db.GetAuthorisation(self.UserID) #Attribute for user Auth
+		self.Status = self.db.GetStatus(self.UserID) #Attribute for user Status
+		self.normalWindowX = 500 #Consistent window width to use for most windows
+		self.normalWelcomeFrameHeight = 100 #Consistent welcome frame height for most windows
 
+	#Determine whether user is signing in or out, and display the appropriate screen
 	def Register(self):
 		db = self.db
-		SignInOrOut = self.__GetLogType()
+		SignInOrOut = self.__GetLogType() #Determine whether user is signing in or out
 		actionPerformed = False
-		while not actionPerformed:
-			if SignInOrOut == 'SIGNIN':
+		while not actionPerformed: #Always loop back to this screen unless user selects a registration option or cancels
+			if SignInOrOut == 'SIGNIN': #When user is currently Absent
 				self.__signInOption = ''
-				self.__GetSignInOption()
+				self.__GetSignInOption() #Change signInOption attribute to the option that the user chooses
 				if self.__signInOption == 'SIGNIN':
-					db.AddLog(self.UserID, 'SIGNIN', False)
-					db.UpdateStatus(self.UserID, 'PRESENT')
-					self.__RegisteredScreen()
+					db.AddLog(self.UserID, 'SIGNIN', False) #Add appropriate log to database
+					db.UpdateStatus(self.UserID, 'PRESENT') #Change the user's status accordingly
+					self.__RegisteredScreen() #Inform the user that their request and been acknowledged
 					actionPerformed = True
 				elif self.__signInOption == 'CANCEL':
 					print('Action cancelled.')
 					actionPerformed = True
-			elif SignInOrOut == 'SIGNOUT':
+			elif SignInOrOut == 'SIGNOUT': #When user is currently Present
 				self.__signOutOption = ''
 				self.__GetSignOutOption()
 				if self.__signOutOption == 'SIGNOUT':
@@ -49,12 +50,14 @@ class User:
 					print('Action cancelled.')
 					actionPerformed = True
 
+	#Use current Status to determine whether user signs in or out
 	def __GetLogType(self):
 		if self.Status == 'PRESENT':
 			return 'SIGNOUT'
 		elif self.Status == 'ABSENT' or self.Status == 'LUNCHBREAK':
 			return 'SIGNIN'
 
+	#Run when user signs in
 	def __GetSignInOption(self):
 		self.signInOption = ''
 		self._InitNewScreen('Register', self.normalWindowX)
@@ -75,6 +78,7 @@ class User:
 		cancelButton = Button(optionsFrame, text='Cancel', font=self.buttonFont, bg='red', command=lambda: self.__SetSignInOption('CANCEL'))
 		cancelButton.place(relx=.5, rely=.666, anchor='center')
 
+		#Remind the user of their current status
 		statusText = 'Your status is: {0}'.format(self.Status)
 		statusLabel = Label(self.mainWindow, text=statusText, font=self.statusFont, fg='grey')
 		statusLabel.place(relx=.5, rely=.8, anchor='n')
@@ -86,6 +90,7 @@ class User:
 		self.__signInOption = option
 		self.mainWindow.destroy()
 
+	#Run when user signs out
 	def __GetSignOutOption(self):
 		self.signOutOption = ''
 		self._InitNewScreen('Register', self.normalWindowX)
@@ -124,8 +129,9 @@ class User:
 		self.__signOutOption = option
 		self.mainWindow.destroy()
 
+	#Notification to inform the user that the program has adhered to their sign in/out option
 	def __RegisteredScreen(self):
-		self.Status = self.db.GetStatus(self.UserID)
+		self.Status = self.db.GetStatus(self.UserID) #Update user's Status attribute
 		self._InitNewScreen('Registered', self.normalWindowX)
 
 		self.dateLabel = Label(self.mainWindow, text=time.strftime('%-d %b %Y'), font=self.datetimeDisplayFont)
@@ -133,12 +139,13 @@ class User:
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.35, anchor='n')
+		
+		#Update string to display, based on user's updated status
 		if self.Status == 'PRESENT':
 			registerType = 'in'
 		elif self.Status == 'ABSENT' or self.Status == 'LUNCHBREAK':
 			registerType = 'out'
 		registeredText = '{0}, you are now signed {1}.'.format(self.FirstName, registerType)
-
 		registeredLabel = Label(self.welcomeFrame, text=registeredText, font=self.greetingFont)
 		registeredLabel.place(relx=.5, rely=.33, anchor='n')
 
@@ -153,6 +160,7 @@ class User:
 		self.mainWindow.after(3000, self.mainWindow.destroy)
 		self.mainWindow.mainloop()
 
+	#The basic format of every window to be used throughout the program
 	def _InitNewScreen(self, title, windowX):
 		self.mainWindow = Tk()
 		windowY = 500
@@ -165,7 +173,8 @@ class User:
 		self.mainWindow.resizable(width=False, height=False)
 		#self.mainWindow.update_idletasks()
 		#self.mainWindow.overrideredirect(True) #Remove border around window which includes min, max and X buttons
-
+		
+		#All fonts available to display in the program
 		self.greetingFont = Font(family='Helvetica', size=18)
 		self.buttonFont = Font(family='Helvetica', size=14)
 		self.smallButtonFont = Font(family='Helvetica', size=8)
@@ -174,6 +183,7 @@ class User:
 		self.statusFont = Font(family='Helvetica', size=12)
 		self.tableFont = Font(family='Calibri', size=12)
 
+	#Display date and time in appropriate postitions on the window
 	def _DateAndTime(self):
 		self.dateLabel = Label(self.mainWindow, font=self.datetimeDisplayFont)
 		self.dateLabel.place(anchor='nw')
@@ -184,6 +194,7 @@ class User:
 		self.falsetime = ''
 		self._UpdateDateAndTime()
 
+	#Dynamically update the date and time display on the window using recursion
 	def _UpdateDateAndTime(self):
 		self.currentTime = time.strftime('%H:%M:%S')
 		self.currentDate = time.strftime('%-d %b %Y')
