@@ -2,13 +2,16 @@ from Database import Database
 from tkinter import *
 from tkinter.font import Font
 import time
+import os
 class User:
-	def __init__(self, UserID, db):
+	def __init__(self, KeyID, db):
 		self.db = db
-		self.UserID = UserID
+		self.KeyID = KeyID
+		self.UserID = db.GetUserID(KeyID)
 		self.FirstName = self.db.GetFirstName(self.UserID) #Attribute for user FirstName
 		self.Authorisation = self.db.GetAuthorisation(self.UserID) #Attribute for user Auth
 		self.Status = self.db.GetStatus(self.UserID) #Attribute for user Status
+		self.cwd = os.path.dirname(os.path.realpath(__file__))
 		self.normalWindowX = 500 #Consistent window width to use for most windows
 		self.normalWelcomeFrameHeight = 100 #Consistent welcome frame height for most windows
 
@@ -139,7 +142,7 @@ class User:
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.35, anchor='n')
-		
+
 		#Update string to display, based on user's updated status
 		if self.Status == 'PRESENT':
 			registerType = 'in'
@@ -173,7 +176,7 @@ class User:
 		self.mainWindow.resizable(width=False, height=False)
 		#self.mainWindow.update_idletasks()
 		#self.mainWindow.overrideredirect(True) #Remove border around window which includes min, max and X buttons
-		
+
 		#All fonts available to display in the program
 		self.greetingFont = Font(family='Helvetica', size=18)
 		self.buttonFont = Font(family='Helvetica', size=14)
