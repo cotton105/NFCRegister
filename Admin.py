@@ -1,6 +1,7 @@
 from User import User
 from tkinter import *
 from tkinter.font import Font
+import os
 class Admin(User): #Inherits the User class
 	def _AdminTools(self):
 		db = self.db
@@ -38,22 +39,25 @@ class Admin(User): #Inherits the User class
 				#Get the whole UserDetails entity then display
 				self.__ViewUsers(db.GetUsers())
 			elif self.__adminAction == 'ADDUSER':
-				self.__AddNewUser()
+				self.__abortNewUser = False
+				self.__ScanNewUserCardScreen()
+				if not self.__abortNewUser:
+					self.__AddNewUser()
 			elif self.__adminAction == 'CANCEL':
 				print('Action cancelled.')
 				self.__actionPerformed = True #Break out of loop to return to register screen
 
 	def __GetAdminAction(self): #Display the screen which allows the user to select an admin option
 		self._InitNewScreen('Admin tools', self.normalWindowX)
-		
+
 		#Frame to hold main message and the current time
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
-		
+
 		welcomeText = 'Select an admin action to perform.'
 		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
 		welcomeLabel.place(relx=.5, rely=.1, anchor='n')
-		
+
 		#Frame which holds buttons for user to press
 		optionsFrame = Frame(self.mainWindow, height=200, width=self.normalWindowX)
 		optionsFrame.place(relx=.5, rely=.35, anchor='n')
@@ -200,7 +204,7 @@ class Admin(User): #Inherits the User class
 
 		entryFrame = Frame(self.mainWindow, height=200, width=self.normalWindowX)
 		entryFrame.place(relx=.5, rely=.4, anchor='n')
-		
+
 		#This block creates the whole entry box instance, inc. text and the box itself
 		FNameHeight = .1
 		FNameText = Label(entryFrame, text='First name:', font=self.datetimeDisplayFont)
@@ -248,7 +252,7 @@ class Admin(User): #Inherits the User class
 
 		entryFrame = Frame(self.mainWindow, height=200, width=self.normalWindowX)
 		entryFrame.place(relx=.5, rely=.4, anchor='n')
-		
+
 		#Text and entry box for new Surname entry
 		SNameHeight = .1
 		SNameText = Label(entryFrame, text='  Surname:', font=self.datetimeDisplayFont)
@@ -283,7 +287,7 @@ class Admin(User): #Inherits the User class
 
 		optionsFrame = Frame(self.mainWindow, height=200, width=self.normalWindowX)
 		optionsFrame.place(relx=.5, rely=.4, anchor='n')
-		
+
 		#Radio buttons for new Auth
 		#Auth can only be one of these three options
 		self.newAuth = StringVar()
@@ -325,7 +329,7 @@ class Admin(User): #Inherits the User class
 
 		optionsFrame = Frame(self.mainWindow, height=200, width=self.normalWindowX)
 		optionsFrame.place(relx=.5, rely=.4, anchor='n')
-		
+
 		#Radio buttons for new Status
 		#Status can only be one of these three options
 		self.newStatus = StringVar()
@@ -343,7 +347,7 @@ class Admin(User): #Inherits the User class
 
 		cancelButton = Button(optionsFrame, text='Cancel', font=self.buttonFont, bg='red', command=lambda: self.__SetAdminAction('CANCEL'))
 		cancelButton.place(relx=.5, rely=.55, anchor='n')
-		
+
 		#Inform the admin what the user's current status is
 		UserStatusText = Label(self.mainWindow, text="{0}'s status: {1}".format(self.db.GetFirstName(TargetUserID), self.db.GetStatus(TargetUserID)), font=self.statusFont, fg='grey')
 		UserStatusText.place(relx=.5, rely=.8, anchor='n')
@@ -387,14 +391,14 @@ class Admin(User): #Inherits the User class
 		entryFrame.place(relx=.5, rely=.4, anchor='n')
 
 		EntryBoxX = 300
-		
+
 		#FirstName entry
 		FNameEntryY = 0
 		FNameEntryText = Label(entryFrame, text='FirstName:', font=self.datetimeDisplayFont)
 		FNameEntryText.place(x=(EntryBoxX-125), rely=FNameEntryY, anchor='n')
 		self.FNameEntry = Entry(entryFrame)
 		self.FNameEntry.place(x=EntryBoxX, rely=FNameEntryY, anchor='n')
-		
+
 		#Surname entry
 		SNameEntryY = 0.12
 		SNameEntryText = Label(entryFrame, text='  Surname:', font=self.datetimeDisplayFont)
@@ -435,7 +439,7 @@ class Admin(User): #Inherits the User class
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=700)
 		self.welcomeFrame.pack(side=TOP)
-		
+
 		mainTableFrame = Frame(self.mainWindow, height=400, width=684) #Main frame to hold canvas
 		self.tableCanvas = Canvas(mainTableFrame) #Canvas to be scrolled and hold table frame
 		self.tableFrame = Frame(self.tableCanvas) #Frame to hold the table to be displayed
@@ -540,7 +544,7 @@ class Admin(User): #Inherits the User class
 		#Initially create the headers of the table
 		for column in range(len(table[0])):
 			headerText = headers[column] #Incrementally go through tuple to insert the correct header
-			header = Label(self.tableFrame, text='', font=self.tableFont) 
+			header = Label(self.tableFrame, text='', font=self.tableFont)
 			header.grid(row=0, column=column, sticky='we') #Place the header label in the correct grid pos
 			header.config(text=headerText, highlightthickness=1, highlightbackground='grey') #Add correct text and a border to the label
 		#Populate the table with values from the database
@@ -550,22 +554,64 @@ class Admin(User): #Inherits the User class
 				value.grid(row=row + 1, column=column, sticky='we') #Position value (row+1 to compensate for headers row)
 				value.config(highlightthickness=1, highlightbackground='grey') #Add border to label
 
+	def __ScanNewUserCardScreen(self):
+		self._InitNewScreen('Scan a new card to be used', self.normalWindowX)
+
+		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
+		self.welcomeFrame.place(relx=.5, rely=.4, anchor='n')
+
+		welcomeText = "Check the console for further instructions."
+		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
+		welcomeLabel.place(relx=.5, rely=0, anchor='n')
+
+		self._DateAndTime()
+		self.mainWindow.after(1000, self.__SetUserTag)
+		self.mainWindow.mainloop()
+
+	def __SetUserTag(self):
+		print('** SCAN THE CARD TO BE REGISTERED TO THE USER **')
+		os.chdir(self.cwd+'/nfcpy/examples')
+		os.system('python2 tagtool.py --device tty:AMA0:pn532 show')
+		with open('LastTagRead.txt','r') as tagfile:
+			UserTag = tagfile.read()
+		os.chdir(self.cwd)
+		self.newKeyID = UserTag
+		self.mainWindow.destroy()
+		self.__SetNewUserCard()
+
+	def __SetNewUserCard(self):
+		keyExists = self.db.KeyIDExists(self.newKeyID)
+		if keyExists:
+			self.__abortNewUser = True
+			self._InitNewScreen('Card already registered', self.normalWindowX)
+
+			self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
+			self.welcomeFrame.place(relx=.5, rely=.4, anchor='n')
+
+			welcomeText = 'Card already registered to database.'
+			welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
+			welcomeLabel.place(relx=.5, rely=.1, anchor='n')
+
+			self._DateAndTime()
+			self.mainWindow.after(3000, self.mainWindow.destroy)
+			self.mainWindow.mainloop()
+
 	def __AddNewUser(self): #Enter the information for a new user to be added to the database
 		self._InitNewScreen('Add a new user', self.normalWindowX)
 
-		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
+		self.welcomeFrame = Frame(self.mainWindow, height=150, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.1, anchor='n')
 
-		welcomeText = 'Enter the information for the new user.'
+		welcomeText = 'Enter the information for the new user.\nKeyID is: {0}'.format(self.newKeyID)
 		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
-		welcomeLabel.place(relx=.5, rely=.1, anchor='n')
-		
+		welcomeLabel.place(relx=.5, rely=0, anchor='n')
+
 		#Frame for entry boxes to be placed
 		entryFrame = Frame(self.mainWindow, height=250, width=self.normalWindowX)
 		entryFrame.place(relx=.5, rely=.3, anchor='n')
 
 		EntryX = .6 #Consistent relx value to use for the entry boxes, to keep them aligned
-		
+
 		#FirstName entry
 		FNameHeight = .1
 		FNameText = Label(entryFrame, text='   First name:', font=self.datetimeDisplayFont)
@@ -579,7 +625,7 @@ class Admin(User): #Inherits the User class
 		SNameText.place(relx=.33, rely=SNameHeight, anchor='n')
 		self.SNameEntry = Entry(entryFrame)
 		self.SNameEntry.place(relx=EntryX, rely=SNameHeight, anchor='n')
-		
+
 		#Auth radio buttons
 		self.newAuth = StringVar()
 		AuthRadioText = Label(entryFrame, text='Authorisation:', font=self.datetimeDisplayFont)
@@ -604,6 +650,7 @@ class Admin(User): #Inherits the User class
 		valid = True
 		validFName = True
 		validAuth = True
+		KeyID = self.newKeyID
 		FName = self.FNameEntry.get()
 		SName = self.SNameEntry.get()
 		Auth = self.newAuth.get()
@@ -626,7 +673,7 @@ class Admin(User): #Inherits the User class
 			self.mainWindow.after(3000, self.mainWindow.destroy)
 			self.mainWindow.mainloop()
 		else:
-			self.db.AddNewUser(FName, SName, Auth) #Make the changes to the database
+			self.db.AddNewUser(KeyID, FName, SName, Auth) #Make the changes to the database
 
 	def __ValidUserID(self, UserID): #Determine whether the UserID provided is above zero and thus is valid
 		try:

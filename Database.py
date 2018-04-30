@@ -1,10 +1,12 @@
 import time
+import os
 import MySQLdb as mariadb
 from tkinter import *
 class Database:
 	def __init__(self, dbConnection):
 		self.dbConnection = dbConnection
 		self.__cur = self.dbConnection.cursor()
+		self.cwd = os.path.dirname(os.path.realpath(__file__))
 
 	def CreateNewDatabase(self):
 		createDatabase = 'CREATE DATABASE NFCRegister;' #Create the database to hold each entity
@@ -32,10 +34,11 @@ class Database:
 			'FOREIGN KEY LogID (LogID) REFERENCES Log(LogID), ' \
 			'Date DATE NOT NULL, ' \
 			'Time TIME NOT NULL);'
-		#Query to ensure at least one admin is registered, so that changes can be made
+		#Ensure at least one admin is registered, so that changes can be made
+		adminTag = self.__GetAdminTag()
 		createAdmin = 'INSERT INTO UserDetails(' \
-			'FirstName, Authorisation) ' \
-			'VALUES("Admin", "ADMIN");'
+			'KeyID, FirstName, Authorisation) ' \
+			'VALUES("{0}", "Master", "ADMIN");'.format(adminTag)
 		queries = (createUserDetailsEntity,
 				   createLogEntity,
 				   createEntryTimeEntity,
@@ -43,7 +46,21 @@ class Database:
 		#Execute each query in consecutive order
 		for query in range(len(queries)):
 			self.__ExecuteSQL(str(queries[query]))
-			
+
+	def __GetAdminTag(self):
+		print('** SCAN THE CARD TO BE USED FOR THE ADMIN **')
+		os.chdir(self.cwd+'/nfcpy/examples')
+		os.system('python2 tagtool.py --device tty:AMA0:pn532 show')
+		with open('LastTagRead.txt','r') as tagfile:
+			tag = tagfile.read()
+		os.chdir(self.cwd)
+		return tag
+
+	def GetUserID(self, KeyID):
+		query = 'SELECT UserID FROM UserDetails WHERE KeyID = "{0}";'.format(KeyID)
+		UserID =  self.__ReturnOneSQL(query)
+		return UserID
+
 	#Function to get the FirstName of a user based on the provided UserID
 	def GetFirstName(self, UserID):
 		query = 'SELECT FirstName FROM UserDetails WHERE UserID = {0};'.format(UserID)
@@ -61,7 +78,7 @@ class Database:
 		query = 'SELECT Status FROM UserDetails WHERE UserID = {0};'.format(UserID)
 		Status = self.__ReturnOneSQL(query)
 		return Status
-	
+
 	#Update the status of a user
 	def UpdateStatus(self, UserID, Status):
 		query = 'UPDATE UserDetails SET Status = "{0}" WHERE UserID = {1};'.format(Status, UserID)
@@ -117,7 +134,7 @@ class Database:
 		self.AddLog(TargetUserID, 'FNAMECHANGE', True)
 		query = 'UPDATE UserDetails SET FirstName = "{0}" WHERE UserID = {1};'.format(FName, TargetUserID)
 		self.__ExecuteSQL(query)
- 	#(Admin) Manually modify a user's Surname
+	#(Admin) Manually modify a user's Surname
 	def ManualChangeSName(self, TargetUserID, SName):
 		self.AddLog(TargetUserID, 'SNAMECHANGE', True)
 		query = 'UPDATE UserDetails SET Surname = "{0}" WHERE UserID = {1};'.format(SName, TargetUserID)
@@ -131,21 +148,21 @@ class Database:
 	def ManualChangeStatus(self, TargetUserID, Status):
 		self.AddLog(TargetUserID, 'STATUSCHANGE', True)
 		self.UpdateStatus(TargetUserID, Status)
-		
+
 	#(Admin) Add a new user into the UserDetails entity
-	def AddNewUser(self, FName, SName, Auth):
-		query = 'INSERT INTO UserDetails(FirstName, Surname, Authorisation) VALUES("{0}", "{1}", "{2}");'.format(FName, SName, Auth)
+	def AddNewUser(self, KeyID, FName, SName, Auth):
+		query = 'INSERT INTO UserDetails(KeyID, FirstName, Surname, Authorisation) VALUES("{0}", "{1}", "{2}", "{3}");'.format(KeyID, FName, SName, Auth)
 		self.__ExecuteSQL(query)
 		query = 'SELECT last_insert_id() FROM Log;'
 		self.AddLog(self.__ReturnOneSQL(query), 'NEWUSER', True)
-		
+
 	#Determine whether the Authorisation string passed is valid
 	def __ValidAuthorisation(self, Authorisation):
 		if Authorisation == 'STUDENT' or Authorisation == 'TEACHER' or Authorisation == 'ADMIN':
 			return True
 		else:
 			return False
-		
+
 	#(Admin) Retrieve all the records in the Log entity
 	def GetLogs(self):
 		query = 'SELECT Log.LogID, Log.UserID, Log.Type, Log.Forced, EntryTime.Date, EntryTime.Time ' \
@@ -154,7 +171,7 @@ class Database:
 			'ORDER BY EntryTime.Date, EntryTime.Time ASC;'
 		logTable = self.__ReturnAllSQL(query)
 		return logTable
-	
+
 	#Construct a query to search for someone's record in UserDetails table then execute
 	def SearchUsers(self, FName, SName):
 		if len(FName) > 0 and len(SName) > 0: #When both FName and SName are specified
@@ -172,3 +189,11 @@ class Database:
 		query = 'SELECT * FROM UserDetails;'
 		userTable = self.__ReturnAllSQL(query)
 		return userTable
+
+	def KeyIDExists(self, keyID):
+		query = 'SELECT * FROM UserDetails WHERE KeyID = "{0}"'.format(keyID)
+		result = self.__ReturnAllSQL(query)
+		if len(result) >= 1:
+			return True
+		else:
+			return False
