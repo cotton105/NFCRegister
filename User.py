@@ -4,6 +4,7 @@ from tkinter.font import Font
 import time
 import os
 class User:
+	#Set all relevant attributes to User object
 	def __init__(self, KeyID, db):
 		self.db = db
 		self.KeyID = KeyID
@@ -199,10 +200,11 @@ class User:
 
 	#Dynamically update the date and time display on the window using recursion
 	def _UpdateDateAndTime(self):
-		self.currentTime = time.strftime('%H:%M:%S')
-		self.currentDate = time.strftime('%-d %b %Y')
+		self.currentTime = time.strftime('%H:%M:%S') #Format string of the current time in 24hr format
+		self.currentDate = time.strftime('%-d %b %Y') #Format date in d/m/y format
+		#Update if the time is different from last check
 		if self.currentTime != self.falsetime:
 			self.falsetime = self.currentTime
 			self.clock.config(text=self.currentTime)
 			self.dateLabel.config(text=self.currentDate)
-		self.mainWindow.after(200, self._UpdateDateAndTime)
+		self.mainWindow.after(200, self._UpdateDateAndTime) #Repeat every 1/5th of a second to emulate a dynamic clock
