@@ -23,11 +23,12 @@ class Admin(User): #Inherits the User class
 					self.__ChangeStatus(self.TargetUserID)
 			elif self.__adminAction == 'SEARCHUSER':
 				self.__abortSearch = False
-				self.__GetSearchUserName()
+				self.__GetSearchUserName() #Get the First and/or Surname to search for
 				if not self.__abortSearch:
 					matchingUsers = self.db.SearchUsers(self.targetFName, self.targetSName)
 					try:
 						self.__DisplayMatchingUsers(matchingUsers)
+					#Throw an error in case there are no users to display
 					except Exception as e:
 						print(e)
 						self.mainWindow.destroy()
@@ -41,19 +42,21 @@ class Admin(User): #Inherits the User class
 			elif self.__adminAction == 'ADDUSER':
 				self.__abortNewUser = False
 				self.__ScanNewUserCardScreen()
-				if not self.__abortNewUser:
+				if not self.__abortNewUser: #Ensure that a new user is only added if their credentials are specified
 					self.__AddNewUser()
 			elif self.__adminAction == 'CANCEL':
 				print('Action cancelled.')
 				self.__actionPerformed = True #Break out of loop to return to register screen
-
-	def __GetAdminAction(self): #Display the screen which allows the user to select an admin option
+	
+	#Display the screen which allows the user to select an admin option
+	def __GetAdminAction(self):
 		self._InitNewScreen('Admin tools', self.normalWindowX)
 
 		#Frame to hold main message and the current time
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
 		self.welcomeFrame.place(relx=.5, rely=.2, anchor='n')
-
+		
+		#Main label to give instructions
 		welcomeText = 'Select an admin action to perform.'
 		welcomeLabel = Label(self.welcomeFrame, text=welcomeText, font=self.greetingFont)
 		welcomeLabel.place(relx=.5, rely=.1, anchor='n')
@@ -83,12 +86,15 @@ class Admin(User): #Inherits the User class
 		self._DateAndTime() #Display date and time in appropriate positions on the main window
 		self.mainWindow.mainloop()
 
-	def __SetAdminAction(self, action): #Command when any button is pressed in AdminTools screen
+	#Command when any button is pressed in AdminTools screen
+	def __SetAdminAction(self, action):
 		self.__adminAction = action
 		self.mainWindow.destroy()
 
-	def __GetTargetUserID(self): #Retrieve the UserID of the user to modify
+	#Retrieve the UserID of the user to modify
+	def __GetTargetUserID(self):
 		self.__validUserID = False
+		#Loop until valid UserID entered
 		while not self.__validUserID:
 			self._InitNewScreen('Get UserID', self.normalWindowX)
 
@@ -115,7 +121,8 @@ class Admin(User): #Inherits the User class
 			self._DateAndTime()
 			self.mainWindow.mainloop()
 
-	def __SetTargetUserID(self, UserID, setToCancel): #Set the TargetUserID of the user to modify, specified by the admin
+	#Set the TargetUserID of the user to modify, specified by the admin
+	def __SetTargetUserID(self, UserID, setToCancel):
 		if setToCancel:
 			self.__validUserID = True
 			self.mainWindow.destroy()
@@ -161,7 +168,8 @@ class Admin(User): #Inherits the User class
 			self.mainWindow.after(3000, self.mainWindow.destroy)
 			self.mainWindow.mainloop()
 
-	def __GetAttributeToChange(self): #Display the attributes that the admin can change
+	#Display the attributes that the admin can change
+	def __GetAttributeToChange(self):
 		self._InitNewScreen('Get attribute to change', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -192,7 +200,8 @@ class Admin(User): #Inherits the User class
 		self._DateAndTime()
 		self.mainWindow.mainloop()
 
-	def __ChangeFName(self, TargetUserID): #Manually modify a user's FirstName
+	#Manually modify a user's FirstName
+	def __ChangeFName(self, TargetUserID):
 		self._InitNewScreen('Change first name', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -240,7 +249,8 @@ class Admin(User): #Inherits the User class
 		else:
 			self.db.ManualChangeFName(TargetUserID, FName) #Make the changes to the database
 
-	def __ChangeSName(self, TargetUserID): #Manually modify a user's Surname
+	#Manually modify a user's Surname
+	def __ChangeSName(self, TargetUserID):
 		self._InitNewScreen('Change surname', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -259,7 +269,8 @@ class Admin(User): #Inherits the User class
 		SNameText.place(relx=.33, rely=SNameHeight, anchor='n')
 		self.SNameEntry = Entry(entryFrame)
 		self.SNameEntry.place(relx=.58, rely=SNameHeight, anchor='n')
-
+		
+		#Button to submit the credentials entered
 		submitButton = Button(entryFrame, text='Submit', font=self.buttonFont, bg='green', command=lambda: self.__SetNewSName(TargetUserID)) #Send all the information to be updated in the database
 		submitButton.place(relx=.5, rely=.4, anchor='n')
 
@@ -275,7 +286,8 @@ class Admin(User): #Inherits the User class
 		self.mainWindow.destroy()
 		self.db.ManualChangeSName(TargetUserID, SName) #Make the changes to the database
 
-	def __ChangeAuthorisation(self, TargetUserID): #Manually modify a user's Authorisation
+	#Manually modify a user's Authorisation
+	def __ChangeAuthorisation(self, TargetUserID):
 		self._InitNewScreen('Change authorisation', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -317,7 +329,8 @@ class Admin(User): #Inherits the User class
 		else:
 			self.db.ManualChangeAuth(TargetUserID, Auth) #Make the changes to the database
 
-	def __ChangeStatus(self, TargetUserID): #Manually modify a user's Status
+	#Manually modify a user's Status
+	def __ChangeStatus(self, TargetUserID):
 		self._InitNewScreen('Change status', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -363,6 +376,7 @@ class Admin(User): #Inherits the User class
 		else:
 			self.db.ManualChangeStatus(TargetUserID, Status) #Make the changes to the database
 
+	#Error screen if no options are selected when they need to be
 	def __NoOptionSelected(self):
 		self._InitNewScreen('No option selected', self.normalWindowX)
 
@@ -377,7 +391,8 @@ class Admin(User): #Inherits the User class
 		self.mainWindow.after(3000, self.mainWindow.destroy)
 		self.mainWindow.mainloop()
 
-	def __GetSearchUserName(self): #Prompt user for the name to search for in UserDetails entity
+	#Prompt user for the name to search for in UserDetails entity
+	def __GetSearchUserName(self):
 		self._InitNewScreen('Enter user name', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -434,8 +449,9 @@ class Admin(User): #Inherits the User class
 			self.mainWindow.after(3000, self.mainWindow.destroy)
 			self.mainWindow.mainloop()
 
-	def __DisplayMatchingUsers(self, userRecords): #Show a table of users matching the admin's search terms
-		self._InitNewScreen('Display matching users', 700) #Bigger X because table can get bigger
+	#Show a table of users matching the admin's search terms
+	def __DisplayMatchingUsers(self, userRecords):
+		self._InitNewScreen('Display matching users', 700) #Bigger X because table can get wider
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=700)
 		self.welcomeFrame.pack(side=TOP)
@@ -455,6 +471,7 @@ class Admin(User): #Inherits the User class
 
 		self.tableFrame.bind('<Configure>', self.__onFrameConfigure)
 
+		#Specify the headers to use for the table
 		headers = ('UserID', 'KeyID', 'FirstName', 'Surname', 'Authorisation', 'Status') #Define headers of table
 		self.__FillTable(userRecords, headers) #Populate table with relevant values
 
@@ -464,7 +481,8 @@ class Admin(User): #Inherits the User class
 		self._DateAndTime()
 		self.mainWindow.mainloop()
 
-	def __NoMatchingUsers(self): #Window to display if no users matched the search terms
+	#Window to display if no users matched the search terms
+	def __NoMatchingUsers(self):
 		self._InitNewScreen('No matching users', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -478,7 +496,8 @@ class Admin(User): #Inherits the User class
 		self.mainWindow.after(3000, self.mainWindow.destroy)
 		self.mainWindow.mainloop()
 
-	def __ViewLogs(self, table): #Show table of Log entity in database
+	#Show table of Log entity in database
+	def __ViewLogs(self, table):
 		self._InitNewScreen('View logs', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=self.normalWelcomeFrameHeight, width=self.normalWindowX)
@@ -507,6 +526,7 @@ class Admin(User): #Inherits the User class
 		self._DateAndTime()
 		self.mainWindow.mainloop()
 
+	#Show table of UserDetails entity in database
 	def __ViewUsers(self, table):
 		usersWindowWidth = 700 #Window is wider because of wider table
 		self._InitNewScreen('View users', usersWindowWidth)
@@ -537,10 +557,12 @@ class Admin(User): #Inherits the User class
 		self._DateAndTime()
 		self.mainWindow.mainloop()
 
+	#Function to allow scrollbar to work
 	def __onFrameConfigure(self, event):
 		self.tableCanvas.config(scrollregion=self.tableCanvas.bbox('all'))
 
-	def __FillTable(self, table, headers): #Logic to insert values into appropriate positions in a table
+	#Logic to insert values into appropriate positions in a table
+	def __FillTable(self, table, headers):
 		#Initially create the headers of the table
 		for column in range(len(table[0])):
 			headerText = headers[column] #Incrementally go through tuple to insert the correct header
@@ -554,6 +576,7 @@ class Admin(User): #Inherits the User class
 				value.grid(row=row + 1, column=column, sticky='we') #Position value (row+1 to compensate for headers row)
 				value.config(highlightthickness=1, highlightbackground='grey') #Add border to label
 
+	#Register card for a new user who is being registered to the database
 	def __ScanNewUserCardScreen(self):
 		self._InitNewScreen('Scan a new card to be used', self.normalWindowX)
 
@@ -568,6 +591,7 @@ class Admin(User): #Inherits the User class
 		self.mainWindow.after(1000, self.__SetUserTag)
 		self.mainWindow.mainloop()
 
+	#Prompt user for new card in console
 	def __SetUserTag(self):
 		print('** SCAN THE CARD TO BE REGISTERED TO THE USER **')
 		os.chdir(self.cwd+'/nfcpy/examples')
@@ -581,6 +605,7 @@ class Admin(User): #Inherits the User class
 
 	def __SetNewUserCard(self):
 		keyExists = self.db.KeyIDExists(self.newKeyID)
+		#Ensure that two user's can't exist with the same KeyID
 		if keyExists:
 			self.__abortNewUser = True
 			self._InitNewScreen('Card already registered', self.normalWindowX)
@@ -596,7 +621,8 @@ class Admin(User): #Inherits the User class
 			self.mainWindow.after(3000, self.mainWindow.destroy)
 			self.mainWindow.mainloop()
 
-	def __AddNewUser(self): #Enter the information for a new user to be added to the database
+	#Enter the information for a new user to be added to the database
+	def __AddNewUser(self):
 		self._InitNewScreen('Add a new user', self.normalWindowX)
 
 		self.welcomeFrame = Frame(self.mainWindow, height=150, width=self.normalWindowX)
@@ -646,7 +672,8 @@ class Admin(User): #Inherits the User class
 		self._DateAndTime()
 		self.mainWindow.mainloop()
 
-	def __SetNewUser(self): #Set the user information to be added to the database
+	#Set the user information to be added to the database
+	def __SetNewUser(self):
 		valid = True
 		validFName = True
 		validAuth = True
@@ -675,7 +702,8 @@ class Admin(User): #Inherits the User class
 		else:
 			self.db.AddNewUser(KeyID, FName, SName, Auth) #Make the changes to the database
 
-	def __ValidUserID(self, UserID): #Determine whether the UserID provided is above zero and thus is valid
+	#Determine whether the UserID provided is above zero and thus is valid
+	def __ValidUserID(self, UserID):
 		try:
 			if int(UserID) > 0:
 				return True
