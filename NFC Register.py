@@ -17,6 +17,7 @@ def GetUserTag():
     os.chdir(cwd)
     return UserTag
 
+#Get UserID from matching KeyID from the database
 def GetUserID(UserTag):
     UserID = db.GetUserID(UserTag)
     return UserID
@@ -30,7 +31,7 @@ def GetNFCRegisterConnection():
                                    db='NFCRegister')
     return dbConnection
 
-#Create the database file if it does not already exist
+#Create the database if it does not already exist
 if not os.path.isdir('/var/lib/mysql/NFCRegister'): #Check if the specified directory exists at this location
     dbConnection = mariadb.connect(host='localhost',
                                    user='dbadmin',
@@ -44,9 +45,11 @@ if not os.path.isdir('/var/lib/mysql/NFCRegister'): #Check if the specified dire
 
 db = Database(GetNFCRegisterConnection())
 
+#Repeat indefinitely, until KeyboardInterrupt
 repeat = True
 while repeat:
     tagExists = False
+    #Repeat until a card is scanned which is registered to the database
     while not tagExists:
         UserTag = GetUserTag()
         if db.KeyIDExists(UserTag):

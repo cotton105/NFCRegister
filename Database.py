@@ -3,16 +3,18 @@ import os
 import MySQLdb as mariadb
 from tkinter import *
 class Database:
+	#Create connection to database and initialise a cursor object
 	def __init__(self, dbConnection):
 		self.dbConnection = dbConnection
 		self.__cur = self.dbConnection.cursor()
-		self.cwd = os.path.dirname(os.path.realpath(__file__))
+		self.cwd = os.path.dirname(os.path.realpath(__file__)) #Set "use" directory to be the current directory
 
 	def CreateNewDatabase(self):
 		createDatabase = 'CREATE DATABASE NFCRegister;' #Create the database to hold each entity
 		self.__ExecuteSQL(createDatabase)
 
-	def AddToNewDatabase(self): #Procedure to create entities and add one user to the new database
+	#Procedure to create entities and add one user to the new database
+	def AddToNewDatabase(self):
 		#Query to create UserDetails entity
 		createUserDetailsEntity = 'CREATE TABLE UserDetails(' \
 			'UserID SMALLINT(5) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT, ' \
@@ -47,6 +49,7 @@ class Database:
 		for query in range(len(queries)):
 			self.__ExecuteSQL(str(queries[query]))
 
+	#Scan the card which will be used as the initial "admin card"
 	def __GetAdminTag(self):
 		print('** SCAN THE CARD TO BE USED FOR THE ADMIN **')
 		os.chdir(self.cwd+'/nfcpy/examples')
@@ -56,6 +59,7 @@ class Database:
 		os.chdir(self.cwd)
 		return tag
 
+	#Function to get the UserID of a user by their KeyID (NFC Card)
 	def GetUserID(self, KeyID):
 		query = 'SELECT UserID FROM UserDetails WHERE KeyID = "{0}";'.format(KeyID)
 		UserID =  self.__ReturnOneSQL(query)
@@ -190,9 +194,11 @@ class Database:
 		userTable = self.__ReturnAllSQL(query)
 		return userTable
 
+	#Return Boolean of whether the given keyID string exists in the database
 	def KeyIDExists(self, keyID):
 		query = 'SELECT * FROM UserDetails WHERE KeyID = "{0}"'.format(keyID)
 		result = self.__ReturnAllSQL(query)
+		#Check if there are any values in the list returned as "result"
 		if len(result) >= 1:
 			return True
 		else:
